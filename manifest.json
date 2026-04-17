@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Void_nyx",
+  "version": "1.2.1",
+  "description": "Aestheic Pure Black Ass New Tab by hazy",
+  "chrome_url_overrides": {
+    "newtab": "homepage.html"
+  },
+  "permissions": [],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self';"
+  }
+}

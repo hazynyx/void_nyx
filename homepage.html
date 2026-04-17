@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void</title>
+    <link rel="icon" type="image/png" href="void.png">
+    <script src="tailwind.js"></script>
+    <style>
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('fonts/JetBrainsMono-Light.woff2') format('woff2');
+            font-weight: 300;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('fonts/JetBrainsMono-Regular.woff2') format('woff2');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('fonts/JetBrainsMono-Medium.woff2') format('woff2');
+            font-weight: 500;
+        }
+
+        :root {
+            --bg-color: #000;
+            --text-color: #e5e5e5;
+            --input-bg: #000;
+            --input-border: #2d2d2d;
+            --modal-bg: #0a0a0a;
+            --menu-bg: #111;
+            --menu-hover: #222;
+        }
+
+        body.light {
+            --bg-color: #f0f8ff;
+            --text-color: #003366;
+            --input-bg: #ffffff;
+            --input-border: #99ccff;
+            --modal-bg: #ffffff;
+            --menu-bg: #fff;
+            --menu-hover: #f0f0f0;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+            box-shadow: 0 0 0 1px rgba(229, 229, 229, 0.1);
+            transition: box-shadow 0.2s ease;
+        }
+        .search-bar:hover {
+            box-shadow: 0 0 0 1px rgba(229, 229, 229, 0.3);
+        }
+        input::placeholder { color: var(--text-color); opacity: 0.5; }
+        input { color: var(--text-color); }
+
+        /* Mac-style Fluid Dock */
+        #dock-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: flex-end;
+            gap: 16px; 
+            padding: 10px;
+            height: 60px;
+            perspective: 1000px;
+        }
+
+        .dock-item {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: width 0.1s, height 0.1s;
+            position: relative;
+            will-change: width, height;
+            color: var(--text-color);
+            opacity: 0.6;
+            user-select: none;
+        }
+
+        .dock-item:hover { opacity: 1; }
+
+        .dock-item svg {
+            width: 100%;
+            height: 100%;
+            stroke: currentColor;
+            fill: none;
+            pointer-events: none;
+        }
+
+        /* Floating Label */
+        .dock-item::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: 150%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--modal-bg);
+            color: var(--text-color);
+            padding: 4px 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            border: 1px solid var(--input-border);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 20;
+        }
+
+        .dock-item:hover::after { opacity: 1; }
+
+        /* Overlays */
+        .overlay-bg {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background-color: var(--modal-bg);
+            border: 1px solid var(--input-border);
+        }
+
+        /* Context Menu */
+        #context-menu {
+            position: absolute;
+            z-index: 100;
+            background-color: var(--menu-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            padding: 4px 0;
+            display: none;
+            min-width: 120px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .ctx-item { padding: 6px 12px; font-size: 12px; cursor: pointer; color: var(--text-color); }
+        .ctx-item:hover { background-color: var(--menu-hover); }
+
+        .fade-in { animation: fadeIn 1s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Settings Inputs */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 24px;
+            height: 24px;
+            background: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch {
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+        }
+        /* Number Input styling */
+        input[type=number]::-webkit-inner-spin-button {
+            opacity: 0.1;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center pt-[150px] fade-in" id="main-body">
+    
+    <div class="absolute top-6 right-6 flex gap-3 z-50">
+        <button id="settings-btn" class="p-2 rounded-md border border-gray-800 hover:border-gray-500 transition-all opacity-50 hover:opacity-100 text-gray-400 hover:text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+        <button id="theme-toggle" class="p-2 rounded-md border border-gray-800 hover:border-gray-500 transition-all opacity-50 hover:opacity-100">
+            <span id="theme-icon">☀</span>
+        </button>
+    </div>
+
+    <div class="flex flex-col items-center justify-center w-full max-w-2xl space-y-12 relative z-10">
+        <div class="text-center">
+            <div id="time" class="text-6xl md:text-7xl font-light tracking-tighter"></div>
+            <div id="date" class="text-lg opacity-70 mt-2"></div>
+        </div>
+
+        <div class="w-full">
+            <form action="https://www.google.com/search" method="get" class="w-full">
+                <div class="relative w-full">
+                    <input id="search-input" type="text" name="q" placeholder="Search Google" autocomplete="off" class="search-bar w-full rounded-full py-4 px-6 text-lg focus:outline-none focus:ring-0 border border-gray-800 hover:border-gray-600 transition-colors duration-200">
+                    <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="dock-container"></div>
+
+    <div id="context-menu">
+        <div class="ctx-item" id="ctx-edit">Edit Shortcut</div>
+        <div class="ctx-item text-red-500" id="ctx-delete">Delete Shortcut</div>
+    </div>
+
+    <div id="modal-overlay" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div class="modal-content p-6 rounded-none w-96 flex flex-col gap-4 border border-gray-800">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-mono" id="modal-title">Add Shortcut</h2>
+            </div>
+            
+            <div class="flex gap-2">
+                <input type="text" id="new-label" placeholder="Label" class="flex-1 bg-transparent border border-gray-700 p-2 focus:border-white outline-none text-sm font-mono">
+                <div class="flex items-center border border-gray-700 p-2 w-20" title="Position">
+                    <span class="text-xs opacity-50 mr-2">#</span>
+                    <input type="number" id="new-position" class="w-full bg-transparent outline-none text-sm font-mono text-center" min="1">
+                </div>
+            </div>
+            
+            <input type="text" id="new-url" placeholder="URL" class="w-full bg-transparent border border-gray-700 p-2 focus:border-white outline-none text-sm font-mono">
+            
+            <div class="flex justify-end gap-3 mt-2">
+                <button id="cancel-btn" class="text-sm opacity-60 hover:opacity-100">Cancel</button>
+                <button id="save-btn" class="text-sm border border-gray-700 px-4 py-1 hover:bg-white hover:text-black transition-colors">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="settings-overlay" class="fixed inset-0 hidden items-center justify-center z-50 overlay-bg">
+        <div class="modal-content p-6 rounded-none w-80 flex flex-col gap-4 border border-gray-800">
+            <h2 class="text-lg font-mono mb-2">Settings</h2>
+            
+            <h3 class="text-sm font-mono opacity-70 mb-2">Light Mode Palette</h3>
+            
+            <div class="flex items-center justify-between">
+                <span class="text-sm opacity-80">Background</span>
+                <input type="color" id="color-bg" value="#f0f8ff">
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-sm opacity-80">Text Color</span>
+                <input type="color" id="color-text" value="#003366">
+            </div>
+            
+            <div class="flex justify-between mt-4 pt-4 border-t border-gray-800">
+                <button id="settings-reset" class="text-xs uppercase opacity-50 hover:opacity-100 tracking-wider">Default</button>
+                <div class="flex gap-2">
+                    <button id="settings-cancel" class="text-sm opacity-60 hover:opacity-100">Cancel</button>
+                    <button id="settings-save" class="text-sm border border-gray-700 px-4 py-1 hover:bg-white hover:text-black transition-colors">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
